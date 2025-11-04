@@ -5,6 +5,9 @@ import json, os
 app = Flask(__name__)
 DRAGON_FILE = "dragons.json"  # File to store the dragons temporarily
 
+# Set your Dragon Cave Client ID here (replace with your actual Client ID)
+CLIENT_ID = "aya's-dragon-wagon.cb98ed1b48cb1d76"
+
 # Function to load dragons from the local JSON file
 def load_dragons():
     if os.path.exists(DRAGON_FILE):
@@ -36,7 +39,15 @@ def submit():
 
         # API request to fetch user's dragons (filtering for GROWING dragons only)
         url = f"https://dragcave.net/api/v2/user?username={username}&filter=GROWING"
-        resp = requests.get(url)
+        
+        # Set the headers to include the Client ID for authorization
+        headers = {
+            "Client-ID": aya's-dragon-wagon.cb98ed1b48cb1d76  # This is where we pass the Client ID
+        }
+
+        # Make the request with headers
+        resp = requests.get(url, headers=headers)
+
         if resp.status_code != 200:
             return f"Error fetching user: {resp.status_code}"
 
