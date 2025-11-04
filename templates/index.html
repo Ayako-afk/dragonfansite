@@ -2,24 +2,25 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Dragon Cave Fansite</title>
+    <title>Dragon Cave Dragons</title>
     <style>
         body { font-family: Arial, sans-serif; margin: 20px; }
         h1 { color: #c00; }
-        .dragon { display: inline-block; margin: 10px; text-align: center; }
-        img { max-width: 100px; max-height: 100px; }
+        .dragon { margin-bottom: 20px; }
+        .dragon img { width: 100px; height: 100px; }
     </style>
 </head>
 <body>
-    <h1>Dragon List</h1>
-    <div class="dragons">
+    <h1>Dragon Cave Dragons</h1>
+    <div>
         {% for dragon in dragons %}
-            <div class="dragon">
-                <img src="{{ dragon.image }}" alt="{{ dragon.name }}">
-                <p>{{ dragon.name }}</p>
-            </div>
+        <div class="dragon">
+            <p><strong>Owner:</strong> {{ dragon.owner }}</p>
+            <p><strong>Name:</strong> {{ dragon.name }}</p>
+            <img src="{{ dragon.image }}" alt="{{ dragon.name }}">
+        </div>
         {% endfor %}
     </div>
-    <p><a href="{{ url_for('submit') }}">Add a Dragon</a></p>
+    <p><a href="{{ url_for('submit') }}">Add a Dragon Cave User</a></p>
 </body>
 </html>
