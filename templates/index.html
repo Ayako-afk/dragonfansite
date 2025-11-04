@@ -1,0 +1,21 @@
+<!doctype html>
+<html>
+<head>
+    <title>My Dragon Hatchery</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; }
+        img { width: 100px; height: auto; margin: 5px; }
+    </style>
+</head>
+<body>
+    <h1>🐉 Welcome to My Hatchery</h1>
+    <p><a href="/submit">Add your dragons</a></p>
+    <div>
+        {% for d in dragons %}
+            <a href="https://dragcave.net/view/{{ d.id }}" target="_blank">
+                <img src="{{ d.image }}" alt="{{ d.name }}">
+            </a>
+        {% endfor %}
+    </div>
+</body>
+</html>
