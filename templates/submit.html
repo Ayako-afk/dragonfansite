@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Submit Dragon Code</title>
+    <title>Add a Dragon Cave User</title>
     <style>
         body { font-family: Arial, sans-serif; margin: 20px; }
         h1 { color: #c00; }
@@ -12,10 +12,10 @@
     </style>
 </head>
 <body>
-    <h1>Enter a Dragon Code</h1>
-    <form method="post">
-        <label for="dragon_code">Dragon Code:</label>
-        <input type="text" name="dragon_code" id="dragon_code" required>
+    <h1>Add a Dragon Cave User</h1>
+    <form method="POST">
+        <label for="username">Username:</label>
+        <input type="text" name="username" id="username" required>
         <input type="submit" value="Submit">
     </form>
     <p><a href="{{ url_for('index') }}">Back to dragon list</a></p>
