@@ -1,53 +1,53 @@
-from flask import Flask, render_template, request, redirect, url_for
-import requests, json, random, os
+import requests
+from flask import Flask, request, render_template, redirect, url_for
+import json, os
 
 app = Flask(__name__)
-DATA_FILE = "dragons.json"
+DRAGON_FILE = "dragons.json"
 
 def load_dragons():
-    if not os.path.exists(DATA_FILE):
-        return []
-    with open(DATA_FILE, "r") as f:
-        return json.load(f)
+    if os.path.exists(DRAGON_FILE):
+        with open(DRAGON_FILE) as f:
+            return json.load(f)
+    return []
 
-def save_dragons(data):
-    with open(DATA_FILE, "w") as f:
-        json.dump(data, f)
+def save_dragons(dragons):
+    with open(DRAGON_FILE, "w") as f:
+        json.dump(dragons, f, indent=2)
 
-@app.route("/")
+@app.route("/", methods=["GET"])
 def index():
     dragons = load_dragons()
-    if len(dragons) > 200:
-        dragons = random.sample(dragons, 200)
-    return render_template("index.html", dragons=dragons)
+    # Show only 200 random dragons
+    import random
+    dragons_sample = random.sample(dragons, min(len(dragons), 200))
+    return render_template("index.html", dragons=dragons_sample)
 
 @app.route("/submit", methods=["GET", "POST"])
 def submit():
     if request.method == "POST":
-        username = request.form["username"].strip()
-        api_url = f"https://dragcave.net/api/v2/user?username={username}&filter=GROWING"
-        try:
-            resp = requests.get(api_url)
-            data = resp.json()
+        username = request.form.get("username")
+        if not username:
+            return "Error: Please enter a username"
 
-            dragons = load_dragons()
-            for dragon in data["growing"]:
-                # store each dragon's link + owner
-                dragons.append({
-                    "owner": username,
-                    "id": dragon["id"],
-                    "name": dragon.get("name") or "Unnamed",
-                    "image": dragon["image"]
-                })
-            save_dragons(dragons)
-            return redirect(url_for("index"))
-        except Exception as e:
-            return f"Error: {e}"
+        url = f"https://dragcave.net/api/v2/user?username={username}&filter=GROWING"
+        resp = requests.get(url)
+        if resp.status_code != 200:
+            return f"Error fetching user: {resp.status_code}"
+
+        data = resp.json()
+        if "dragons" not in data:
+            return f"Error: No dragons found for user '{username}'"
+
+        dragons = load_dragons()
+        for dragon in data["dragons"]:
+            dragons.append({
+                "owner": username,
+                "id": dragon["id"],
+                "name": dragon.get("name") or "Unnamed",
+                "image": dragon.get("image", "")
+            })
+        save_dragons(dragons)
+        return redirect(url_for("index"))
 
     return render_template("submit.html")
-
-import os
-
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
