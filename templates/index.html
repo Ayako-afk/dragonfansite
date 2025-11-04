@@ -1,20 +1,23 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-    <title>My Dragon Hatchery</title>
+    <meta charset="UTF-8">
+    <title>Dragon Cave Fansite</title>
     <style>
-        body { font-family: sans-serif; text-align: center; }
-        img { width: 100px; height: auto; margin: 5px; }
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        h1 { color: #c00; text-align: center; }
+        .grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+        .dragon img { width: 80px; height: 80px; border: 1px solid #ccc; border-radius: 4px; }
     </style>
 </head>
 <body>
-    <h1>🐉 Welcome to My Hatchery</h1>
-    <p><a href="/submit">Add your dragons</a></p>
-    <div>
-        {% for d in dragons %}
-            <a href="https://dragcave.net/view/{{ d.id }}" target="_blank">
-                <img src="{{ d.image }}" alt="{{ d.name }}">
-            </a>
+    <h1>Dragon Cave Fansite</h1>
+    <p style="text-align:center;"><a href="{{ url_for('submit') }}">Add a new user</a></p>
+    <div class="grid">
+        {% for dragon in dragons %}
+        <div class="dragon">
+            <img src="{{ dragon.image }}" alt="Dragon">
+        </div>
         {% endfor %}
     </div>
 </body>
