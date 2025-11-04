@@ -3,74 +3,62 @@ from flask import Flask, request, render_template, redirect, url_for
 import json, os
 
 app = Flask(__name__)
-DRAGON_FILE = "dragons.json"
+DRAGON_FILE = "dragons.json"  # File to store the dragons temporarily
 
+# Function to load dragons from the local JSON file
 def load_dragons():
     if os.path.exists(DRAGON_FILE):
         with open(DRAGON_FILE) as f:
             return json.load(f)
     return []
 
+# Function to save dragons to the local JSON file
 def save_dragons(dragons):
     with open(DRAGON_FILE, "w") as f:
         json.dump(dragons, f, indent=2)
 
+# Route to display the list of dragons (show 200 random dragons from the stored file)
 @app.route("/", methods=["GET"])
 def index():
     dragons = load_dragons()
-    # Show only 200 random dragons
+    # Show only 200 random dragons, or fewer if there are not enough
     import random
     dragons_sample = random.sample(dragons, min(len(dragons), 200))
     return render_template("index.html", dragons=dragons_sample)
 
+# Route for submitting a username to fetch their dragons
 @app.route("/submit", methods=["GET", "POST"])
 def submit():
     if request.method == "POST":
-        dragon_code = request.form.get("dragon_code")
+        username = request.form.get("username")
+        if not username:
+            return "Error: Please enter a username"
 
-        if not dragon_code:
-            return "Error: Please enter a dragon code"
-
-        # URL to fetch the specific dragon using the dragon code
-        url = f"https://dragcave.net/api/v2/dragon/{dragon_code}"
-
-        headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
-        }
-
-        try:
-            resp = requests.get(url, headers=headers, timeout=10)
-        except requests.RequestException as e:
-            return f"Error fetching dragon: {e}"
-
+        # API request to fetch user's dragons (filtering for GROWING dragons only)
+        url = f"https://dragcave.net/api/v2/user?username={username}&filter=GROWING"
+        resp = requests.get(url)
         if resp.status_code != 200:
-            # Handle error if the dragon code is invalid or something went wrong
-            return f"Error fetching dragon: {resp.status_code}"
+            return f"Error fetching user: {resp.status_code}"
 
         data = resp.json()
 
-        # Check if the dragon information exists in the response
-        if "dragon" not in data:
-            return f"Error: Dragon with code '{dragon_code}' not found"
-
-        # Extract dragon information
-        dragon = data["dragon"]
-        dragon_info = {
-            "id": dragon["id"],
-            "name": dragon.get("name") or "Unnamed",
-            "image": dragon.get("image", ""),
-            "code": dragon_code
-        }
+        # Check if there are dragons in the response
+        if "dragons" not in data:
+            return f"Error: No dragons found for user '{username}'"
 
         dragons = load_dragons()
-        dragons.append(dragon_info)  # Add the dragon to the list
-        save_dragons(dragons)
+        for dragon in data["dragons"]:
+            dragons.append({
+                "owner": username,
+                "id": dragon["id"],
+                "name": dragon.get("name") or "Unnamed",  # If no name, default to "Unnamed"
+                "image": dragon.get("image", "")  # Optional image field, some dragons might not have images
+            })
 
-        return redirect(url_for("index"))
+        save_dragons(dragons)  # Save updated list of dragons to the file
+        return redirect(url_for("index"))  # Redirect to the index page to show the list of dragons
 
-    return render_template("submit.html")
-    
+    return render_template("submit.html")  # Render the submit page for the user to enter a username
+
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))  # Render sets PORT automatically
-    app.run(host="0.0.0.0", port=port)
-
+    app.run(host="0.0.0.0", port=5000)  # Run the Flask app
