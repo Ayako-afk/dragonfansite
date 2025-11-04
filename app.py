@@ -31,22 +31,32 @@ def submit():
             return "Error: Please enter a username"
 
         url = f"https://dragcave.net/api/v2/user?username={username}&filter=GROWING"
-        resp = requests.get(url)
-        if resp.status_code != 200:
+        headers = {"User-Agent": "Mozilla/5.0"}  # Important for public requests
+
+        try:
+            resp = requests.get(url, headers=headers, timeout=10)
+        except requests.RequestException as e:
+            return f"Error fetching user: {e}"
+
+        if resp.status_code == 401:
+            return f"Error: User '{username}' is private or unauthorized"
+        elif resp.status_code != 200:
             return f"Error fetching user: {resp.status_code}"
 
         data = resp.json()
-        if "dragons" not in data:
-            return f"Error: No dragons found for user '{username}'"
+        if "dragons" not in data or len(data["dragons"]) == 0:
+            return f"No growing dragons found for user '{username}'"
 
         dragons = load_dragons()
         for dragon in data["dragons"]:
-            dragons.append({
-                "owner": username,
-                "id": dragon["id"],
-                "name": dragon.get("name") or "Unnamed",
-                "image": dragon.get("image", "")
-            })
+            # Only append dragons we don’t already have
+            if not any(d["id"] == dragon["id"] for d in dragons):
+                dragons.append({
+                    "owner": username,
+                    "id": dragon["id"],
+                    "name": dragon.get("name") or "Unnamed",
+                    "image": dragon.get("image", "")
+                })
         save_dragons(dragons)
         return redirect(url_for("index"))
 
